@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>SEE Calculator — Nirma University</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #050508;
+      --surface: #0f0f14;
+      --surface2: #16161e;
+      --surface3: #1e1e28;
+      --border: #2a2a38;
+      --border2: #3a3a50;
+      --text: #f0f0f8;
+      --text2: #8888aa;
+      --text3: #55556a;
+      --accent: #00d4ff;
+      --success: #00e5a0;
+      --warn: #ffb830;
+      --danger: #ff4d6a;
+      --radius: 10px;
+      --radius-lg: 14px;
+      --radius-xl: 20px;
+    }
+
+    body {
+      font-family: 'Space Grotesk', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ═══════════ SPLASH ═══════════ */
+    #splash {
+      position: fixed; inset: 0; z-index: 999;
+      background: var(--bg);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 2rem;
+      transition: opacity 0.65s ease, transform 0.65s ease;
+    }
+    #splash.hide { opacity: 0; transform: scale(1.03); pointer-events: none; }
+
+    .splash-grid {
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(0,212,255,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,212,255,0.05) 1px, transparent 1px);
+      background-size: 44px 44px;
+      mask-image: radial-gradient(ellipse 75% 65% at 50% 50%, black 20%, transparent 100%);
+    }
+    .splash-glow {
+      position: absolute; width: 480px; height: 480px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,212,255,0.12) 0%, transparent 70%);
+      top: 50%; left: 50%; transform: translate(-50%, -58%);
+      pointer-events: none;
+    }
+    .splash-inner {
+      position: relative; z-index: 2;
+      text-align: center; max-width: 620px;
+      animation: fadeUp 0.8s ease both;
+    }
+    .splash-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 11px; font-weight: 600; letter-spacing: 1.8px; text-transform: uppercase;
+      color: var(--accent); border: 1px solid rgba(0,212,255,0.3);
+      padding: 5px 16px; border-radius: 20px; background: rgba(0,212,255,0.06);
+      margin-bottom: 2rem; animation: fadeUp 0.8s 0.08s ease both;
+    }
+    .splash-badge .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent); animation: blink 2s infinite;
+    }
+    .splash-title {
+      font-size: clamp(2rem, 7vw, 3.8rem); font-weight: 700;
+      line-height: 1.08; letter-spacing: -1.5px; margin-bottom: 1rem;
+      animation: fadeUp 0.8s 0.14s ease both;
+    }
+    .splash-title .hi {
+      color: var(--text2); font-weight: 400; font-size: 0.55em;
+      display: block; letter-spacing: 0; margin-bottom: 6px;
+    }
+    .splash-title .accent { color: var(--accent); }
+    .splash-by {
+      font-size: 0.9rem; color: var(--text2); margin-bottom: 0.3rem;
+      animation: fadeUp 0.8s 0.2s ease both;
+    }
+    .splash-by strong { color: var(--text); }
+    .splash-roll {
+      font-size: 0.78rem; color: var(--text3); margin-bottom: 2rem; letter-spacing: 0.5px;
+      animation: fadeUp 0.8s 0.24s ease both;
+    }
+    .splash-desc {
+      font-size: 0.88rem; color: var(--text2); line-height: 1.75;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 1rem 1.4rem; margin-bottom: 2.2rem;
+      animation: fadeUp 0.8s 0.3s ease both;
+    }
+    .btn-start {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.45);
+      color: var(--accent); font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.95rem; font-weight: 700; padding: 0.85rem 2.2rem;
+      border-radius: 999px; cursor: pointer; letter-spacing: 0.3px;
+      transition: background 0.18s, box-shadow 0.18s, transform 0.15s;
+      box-shadow: 0 0 24px rgba(0,212,255,0.15);
+      animation: fadeUp 0.8s 0.38s ease both;
+    }
+    .btn-start:hover { background: rgba(0,212,255,0.18); box-shadow: 0 0 40px rgba(0,212,255,0.3); transform: translateY(-2px); }
+    .btn-start:active { transform: scale(0.97); }
+    .btn-start svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+    /* ═══════════ SEM PICKER ═══════════ */
+    #sem-picker {
+      display: none; min-height: 100vh;
+      padding: 40px 16px 80px;
+      animation: fadeUp 0.5s ease both;
+    }
+    #sem-picker.show { display: block; }
+
+    .picker-container { max-width: 700px; margin: 0 auto; }
+    .picker-top { text-align: center; margin-bottom: 36px; }
+    .picker-top h2 { font-size: clamp(1.5rem, 5vw, 2.2rem); font-weight: 700; letter-spacing: -0.5px; margin-bottom: 10px; }
+    .picker-top p { font-size: 14px; color: var(--text2); }
+    .picker-divider { width: 60px; height: 2px; background: var(--accent); margin: 16px auto 0; border-radius: 2px; opacity: 0.4; }
+
+    .sem-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 24px; }
+
+    .sem-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-xl); padding: 26px 20px;
+      cursor: pointer; position: relative; overflow: hidden;
+      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    }
+    .sem-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      opacity: 0; transition: opacity 0.2s;
+    }
+    .sem-card:hover { transform: translateY(-4px); }
+    .sem-card:active { transform: scale(0.97); }
+    .sem-card:nth-child(1)::before { background: linear-gradient(90deg,#00d4ff,#0099cc); }
+    .sem-card:nth-child(2)::before { background: linear-gradient(90deg,#00e5a0,#00b07a); }
+    .sem-card:nth-child(3)::before { background: linear-gradient(90deg,#ffb830,#ff8800); }
+    .sem-card:nth-child(4)::before { background: linear-gradient(90deg,#ff4d6a,#cc0033); }
+    .sem-card:nth-child(1):hover { border-color: rgba(0,212,255,0.35); box-shadow: 0 8px 28px rgba(0,212,255,0.1); }
+    .sem-card:nth-child(2):hover { border-color: rgba(0,229,160,0.35); box-shadow: 0 8px 28px rgba(0,229,160,0.1); }
+    .sem-card:nth-child(3):hover { border-color: rgba(255,184,48,0.35);  box-shadow: 0 8px 28px rgba(255,184,48,0.1); }
+    .sem-card:nth-child(4):hover { border-color: rgba(255,77,106,0.35);  box-shadow: 0 8px 28px rgba(255,77,106,0.1); }
+    .sem-card:hover::before { opacity: 1; }
+
+    .sem-card-num { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 10px; }
+    .sem-card:nth-child(1) .sem-card-num { color: var(--accent); }
+    .sem-card:nth-child(2) .sem-card-num { color: var(--success); }
+    .sem-card:nth-child(3) .sem-card-num { color: var(--warn); }
+    .sem-card:nth-child(4) .sem-card-num { color: var(--danger); }
+
+    .sem-card-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 8px; }
+    .sem-card-subs { font-size: 11.5px; color: var(--text2); line-height: 1.6; }
+    .sem-card-arrow { position: absolute; right: 16px; bottom: 16px; font-size: 1rem; opacity: 0.2; transition: opacity 0.2s, transform 0.2s; }
+    .sem-card:hover .sem-card-arrow { opacity: 0.85; transform: translate(3px,-3px); }
+
+    .btn-ghost {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: transparent; border: 1px solid var(--border); color: var(--text2);
+      font-family: 'Space Grotesk', sans-serif; font-size: 12px; font-weight: 600;
+      padding: 7px 16px; border-radius: 20px; cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .btn-ghost:hover { color: var(--text); border-color: var(--border2); }
+
+    /* ═══════════ CALCULATOR (original styles) ═══════════ */
+    #calculator { display: none; padding: 32px 16px 80px; animation: fadeUp 0.45s ease both; }
+    #calculator.show { display: block; }
+
+    .container { max-width: 700px; margin: 0 auto; }
+    .header { text-align: center; margin-bottom: 36px; }
+    .header-badge {
+      display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--accent);
+      border: 1px solid rgba(0,212,255,0.3); padding: 4px 14px; border-radius: 20px;
+      margin-bottom: 16px; background: rgba(0,212,255,0.05);
+    }
+    .header h1 { font-size: 34px; font-weight: 700; letter-spacing: -1px; color: var(--text); line-height: 1.1; }
+    .header h1 span { color: var(--accent); }
+    .header p { font-size: 14px; color: var(--text2); margin-top: 10px; }
+    .divider { width: 60px; height: 2px; background: var(--accent); margin: 20px auto 0; border-radius: 2px; opacity: 0.4; }
+
+    .calc-nav { max-width: 700px; margin: 0 auto 20px; display: flex; align-items: center; gap: 12px; }
+    .calc-sem-label { font-size: 12px; color: var(--text2); }
+
+
+
+    .subj-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 18px 20px; margin-bottom: 12px; transition: border-color 0.2s; }
+    .subj-card:hover { border-color: var(--border2); }
+    .subj-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .subj-name { font-size: 15px; font-weight: 600; color: var(--text); }
+    .badge { font-size: 10px; padding: 3px 10px; border-radius: 20px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+    .badge-simple  { background: rgba(0,229,160,0.1); color: var(--success); border: 1px solid rgba(0,229,160,0.2); }
+    .badge-complex { background: rgba(255,184,48,0.1); color: var(--warn);    border: 1px solid rgba(255,184,48,0.2); }
+    .badge-nosee   { background: rgba(255,77,106,0.1); color: var(--danger);  border: 1px solid rgba(255,77,106,0.2); }
+
+    .fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px,1fr)); gap: 10px; margin-bottom: 14px; }
+    .field label { display: block; font-size: 10px; color: var(--text3); margin-bottom: 5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; }
+    .field input { width: 100%; padding: 9px 12px; font-size: 14px; font-family: 'Space Grotesk', sans-serif; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface2); color: var(--text); outline: none; transition: border-color 0.15s, background 0.15s; }
+    .field input:focus { border-color: rgba(0,212,255,0.5); background: var(--surface3); }
+    .field input::placeholder { color: var(--text3); }
+
+    .target-row { display: flex; align-items: center; gap: 12px; margin-top: 12px; }
+    .target-row label { font-size: 11px; color: var(--text2); white-space: nowrap; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    .target-row select { flex: 1; padding: 9px 12px; font-size: 13px; font-family: 'Space Grotesk', sans-serif; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface2); color: var(--text); outline: none; cursor: pointer; }
+
+    .result-row { display: flex; gap: 10px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+    .res-box { flex: 1; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 12px; text-align: center; }
+    .res-label { font-size: 10px; color: var(--text3); margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    .res-val { font-size: 24px; font-weight: 700; color: var(--text); letter-spacing: -0.5px; }
+    .res-val.ok   { color: var(--success); }
+    .res-val.warn { color: var(--warn); }
+    .res-val.bad  { color: var(--danger); }
+
+    .sgpa-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 24px; margin-top: 24px; }
+    .sgpa-title { font-size: 11px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 18px; }
+    .sgpa-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .sgpa-box { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 18px; text-align: center; transition: border-color 0.2s; }
+    .sgpa-box:hover { border-color: rgba(0,212,255,0.25); }
+    .sgpa-label { font-size: 11px; color: var(--text2); margin-bottom: 8px; font-weight: 500; }
+    .sgpa-val { font-size: 32px; font-weight: 700; color: var(--accent); letter-spacing: -1px; }
+    .sgpa-sub { font-size: 10px; color: var(--text3); margin-top: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    .footer { text-align: center; margin-top: 32px; padding: 28px 20px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xl); }
+    .footer-dev { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+    .footer-dev span { color: var(--accent); }
+    .footer-roll { font-size: 12px; color: var(--text2); margin-bottom: 20px; }
+    .footer-links { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+    .footer-link { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; padding: 8px 18px; border-radius: 20px; text-decoration: none; transition: all 0.18s; border: 1px solid var(--border); color: var(--text2); font-family: 'Space Grotesk', sans-serif; }
+    .footer-link:hover { color: var(--text); border-color: var(--border2); background: var(--surface2); }
+    .footer-link.gmail    { color: var(--accent); border-color: rgba(0,212,255,0.3); background: rgba(0,212,255,0.05); }
+    .footer-link.gmail:hover { background: rgba(0,212,255,0.12); }
+    .footer-link.linkedin { color: #70b5f9; border-color: rgba(112,181,249,0.3); background: rgba(112,181,249,0.05); }
+    .footer-link.linkedin:hover { background: rgba(112,181,249,0.12); }
+    .footer-disc { font-size: 11px; color: var(--text3); line-height: 1.8; }
+
+    .btn-estimate {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; padding: 1rem;
+      background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.4);
+      color: var(--accent); font-family: 'Space Grotesk', sans-serif;
+      font-size: 1rem; font-weight: 700; border-radius: var(--radius-lg);
+      cursor: pointer; letter-spacing: 0.3px; margin-top: 8px;
+      transition: background 0.18s, box-shadow 0.18s, transform 0.15s;
+      box-shadow: 0 0 20px rgba(0,212,255,0.08);
+    }
+    .btn-estimate:hover { background: rgba(0,212,255,0.18); box-shadow: 0 0 32px rgba(0,212,255,0.2); transform: translateY(-1px); }
+    .btn-estimate:active { transform: scale(0.98); }
+
+    .sem-panel { display: none; }
+    .sem-panel.active { display: block; }
+
+    @media (max-width: 480px) {
+      .header h1 { font-size: 26px; }
+      .fields { grid-template-columns: 1fr 1fr; }
+      .sgpa-val { font-size: 26px; }
+      .footer-links { flex-direction: column; align-items: center; }
+      .sem-cards { grid-template-columns: 1fr; }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes blink {
+      0%,100% { opacity: 1; } 50% { opacity: 0.3; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════ SPLASH ═══════════════════ -->
+<div id="splash">
+  <div class="splash-grid"></div>
+  <div class="splash-glow"></div>
+  <div class="splash-inner">
+    <div class="splash-badge"><div class="dot"></div>Nirma University &middot; ECE</div>
+    <h1 class="splash-title">
+      <span class="hi">Welcome to the</span>
+      SEE Marks <span class="accent">Predictor</span>
+    </h1>
+    <p class="splash-by">Developed by <strong>Panth Shah</strong></p>
+    <p class="splash-roll">25BEC121 &nbsp;&middot;&nbsp; B.Tech ECE &nbsp;&middot;&nbsp; Nirma University, Ahmedabad</p>
+    <div class="splash-desc">
+      Enter your internal marks — Sessional, Assignment, Lab &amp; LPW — pick your target grade,
+      and instantly find out exactly how much you need to score in SEE. Works for all 4 semesters. 🎯
+    </div>
+    <button class="btn-start" onclick="goToPicker()">
+      Get Started
+      <svg viewBox="0 0 24 24"><polyline points="5 12 19 12"/><polyline points="13 6 19 12 13 18"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════ SEM PICKER ═══════════════════ -->
+<div id="sem-picker">
+  <div class="picker-container">
+    <div class="picker-top">
+      <div class="header-badge">Nirma University &middot; ECE</div>
+      <h2>Choose your Semester</h2>
+      <p>Select the semester you want to predict SEE marks for.</p>
+      <div class="picker-divider"></div>
+    </div>
+
+    <div class="sem-cards">
+      <div class="sem-card" onclick="goToCalc(1)">
+        <div class="sem-card-num">Semester 01</div>
+        <div class="sem-card-title">First Sem</div>
+        <div class="sem-card-subs">Maths 1 · Physics · Electrical Science · Computer Programming · Env. Science · General English</div>
+        <div class="sem-card-arrow">↗</div>
+      </div>
+      <div class="sem-card" onclick="goToCalc(2)">
+        <div class="sem-card-num">Semester 02</div>
+        <div class="sem-card-title">Second Sem</div>
+        <div class="sem-card-subs">Maths 2 · AI-ML · Chemistry / Web Prog. · Statistics · EDW · Written Comm. · Contemporary India</div>
+        <div class="sem-card-arrow">↗</div>
+      </div>
+      <div class="sem-card" onclick="goToCalc(3)">
+        <div class="sem-card-num">Semester 03</div>
+        <div class="sem-card-title">Third Sem</div>
+        <div class="sem-card-subs">Network Theory · Maths for ECE · Electronic Devices · Digital Logic Design · Economics · Constitution</div>
+        <div class="sem-card-arrow">↗</div>
+      </div>
+      <div class="sem-card" onclick="goToCalc(4)">
+        <div class="sem-card-num">Semester 04</div>
+        <div class="sem-card-title">Fourth Sem</div>
+        <div class="sem-card-subs">Signals &amp; Systems · Electronics Circuits · Integrated Electronics · Comm. Systems · FPGA · OB</div>
+        <div class="sem-card-arrow">↗</div>
+      </div>
+    </div>
+
+    <button class="btn-ghost" onclick="goToSplash()">← Back to Welcome</button>
+  </div>
+</div>
+
+<!-- ═══════════════════ CALCULATOR (original) ═══════════════════ -->
+<div id="calculator">
+  <div class="calc-nav">
+    <button class="btn-ghost" onclick="goToPicker()">← Change Semester</button>
+    <span class="calc-sem-label" id="calc-sem-label"></span>
+  </div>
+
+  <div class="container">
+    <div class="header">
+      <div class="header-badge">Nirma University &middot; ECE</div>
+      <h1>SEE Marks <span>Calculator</span></h1>
+      <p>Internal marks &amp; grade predictor &mdash; Semester 1 to 4</p>
+      <div class="divider"></div>
+    </div>
+
+    <div id="sem1" class="sem-panel active"></div>
+    <div id="sem2" class="sem-panel"></div>
+    <div id="sem3" class="sem-panel"></div>
+    <div id="sem4" class="sem-panel"></div>
+
+    <button class="btn-estimate" onclick="calcSGPA(currentSem)">
+      ✦ Estimate SGPA
+    </button>
+
+    <div class="sgpa-section">
+      <div class="sgpa-title">Estimated SGPA</div>
+      <div class="sgpa-grid" style="grid-template-columns:1fr;">
+        <div class="sgpa-box">
+          <div class="sgpa-label" id="sgpa-label">Semester —</div>
+          <div class="sgpa-val" id="sgpa-current">—</div>
+          <div class="sgpa-sub">based on targets</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div class="footer-dev">Developed by <span>Panth Shah</span></div>
+      <div class="footer-roll">Roll No. 25BEC121 &nbsp;&middot;&nbsp; Nirma University, ECE</div>
+      <div class="footer-links">
+        <a class="footer-link gmail" href="mailto:panthshah2007@gmail.com">&#9993; panthshah2007@gmail.com</a>
+        <a class="footer-link linkedin" href="https://www.linkedin.com/in/panth-shah-445144389?utm_source=share_via&utm_content=profile&utm_medium=member_android" target="_blank" rel="noopener noreferrer">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+          Panth Shah — LinkedIn
+        </a>
+      </div>
+      <div class="footer-disc">This tool is created by a student for educational purposes only.<br>Calculations are approximate. Always verify with official university guidelines.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ── Navigation ───────────────────────────────── */
+  function goToPicker() {
+    document.getElementById('splash').classList.add('hide');
+    document.getElementById('sem-picker').classList.add('show');
+    document.getElementById('calculator').classList.remove('show');
+    window.scrollTo(0,0);
+  }
+  function goToSplash() {
+    document.getElementById('splash').classList.remove('hide');
+    document.getElementById('sem-picker').classList.remove('show');
+    document.getElementById('calculator').classList.remove('show');
+    window.scrollTo(0,0);
+  }
+  function goToCalc(n) {
+    document.getElementById('sem-picker').classList.remove('show');
+    document.getElementById('calculator').classList.add('show');
+    currentSem = n;
+    switchSem(n);
+    const labels = ['','Semester 1','Semester 2','Semester 3','Semester 4'];
+    document.getElementById('calc-sem-label').textContent = '— Viewing ' + labels[n];
+    document.getElementById('sgpa-label').textContent = labels[n];
+    document.getElementById('sgpa-current').textContent = '—';
+    window.scrollTo(0,0);
+  }
+
+  /* ── Original calculator logic (zero changes) ── */
+  const GRADE_POINTS = {10:91,9:81,8:71,7:61,6:51,5:40,0:0};
+  const GRADE_LABELS = ["Grade 10 (91%+)","Grade 9 (81%+)","Grade 8 (71%+)","Grade 7 (61%+)","Grade 6 (51%+)","Grade 5 (40%+)","Grade 0 (fail)"];
+  const GRADE_VALUES = [10,9,8,7,6,5,0];
+
+  const subjects = {
+    1:[
+      {id:"s1_maths1", name:"Maths 1",                          type:"simple",  credits:2},
+      {id:"s1_env",    name:"Environmental Science",             type:"simple",  credits:2},
+      {id:"s1_phy",    name:"Physics",                           type:"complex", credits:2},
+      {id:"s1_elec",   name:"Electrical Science",                type:"complex", credits:2},
+      {id:"s1_cp",     name:"Computer Programming",              type:"complex", credits:2},
+      {id:"s1_eng",    name:"General English",                   type:"complex", credits:2}
+    ],
+    2:[
+      {id:"s2_maths2", name:"Maths 2",                          type:"simple",   credits:2},
+      {id:"s2_wc",     name:"Written Communication",             type:"simple",   credits:2},
+      {id:"s2_ci",     name:"Contemporary India",                type:"simple",   credits:2},
+      {id:"s2_aiml",   name:"AI-ML",                             type:"complex",  credits:2},
+      {id:"s2_chem",   name:"Chemistry / Intro to Web Prog.",    type:"complex",  credits:2},
+      {id:"s2_stats",  name:"Statistics",                        type:"complex",  credits:2},
+      {id:"s2_edw",    name:"EDW",                               type:"no-see",   credits:2}
+    ],
+    3:[
+      {id:"s3_nt",     name:"Network Theory",                    type:"simple",  credits:2},
+      {id:"s3_maths",  name:"Maths for ECE",                     type:"simple",  credits:2},
+      {id:"s3_eco",    name:"Economics",                         type:"simple",  credits:2},
+      {id:"s3_const",  name:"Indian Constitution & Citizenship", type:"simple",  credits:2},
+      {id:"s3_ed",     name:"Electronic Devices",                type:"complex", credits:2},
+      {id:"s3_dld",    name:"Digital Logic Design",              type:"complex", credits:2}
+    ],
+    4:[
+      {id:"s4_ss",     name:"Signals & Systems",                 type:"simple",  credits:2},
+      {id:"s4_ob",     name:"Organizational Behaviour",          type:"simple",  credits:2},
+      {id:"s4_ec",     name:"Electronics Circuits",              type:"complex", credits:2},
+      {id:"s4_ie",     name:"Integrated Electronics",            type:"complex", credits:2},
+      {id:"s4_cs",     name:"Communication Systems",             type:"complex", credits:2},
+      {id:"s4_fpga",   name:"FPGA Based System Design",          type:"complex", credits:2}
+    ]
+  };
+
+  function gradeSelect(id){
+    let s = `<select onchange="calc('${id}')" id="${id}_grade">`;
+    GRADE_LABELS.forEach((l,i) => { s += `<option value="${GRADE_VALUES[i]}"${i===1?" selected":""}>${l}</option>`; });
+    return s + `</select>`;
+  }
+  function simpleFields(id){
+    return `<div class="fields">
+      <div class="field"><label>Sessional (out of 50)</label><input type="number" id="${id}_sess" min="0" max="50" placeholder="0" oninput="calc('${id}')"></div>
+      <div class="field"><label>Assignment (out of 50)</label><input type="number" id="${id}_assgn" min="0" max="50" placeholder="0" oninput="calc('${id}')"></div>
+    </div>`;
+  }
+  function complexFields(id){
+    return `<div class="fields">
+      <div class="field"><label>Sessional (out of 50)</label><input type="number" id="${id}_sess" min="0" max="50" placeholder="0" oninput="calc('${id}')"></div>
+      <div class="field"><label>Assignment (out of 40)</label><input type="number" id="${id}_assgn" min="0" max="40" placeholder="0" oninput="calc('${id}')"></div>
+      <div class="field"><label>Lab (out of 100)</label><input type="number" id="${id}_lab" min="0" max="100" placeholder="0" oninput="calc('${id}')"></div>
+      <div class="field"><label>LPW (out of 40)</label><input type="number" id="${id}_lpw" min="0" max="40" placeholder="0" oninput="calc('${id}')"></div>
+    </div>`;
+  }
+  function noSeeFields(id){
+    return `<div class="fields">
+      <div class="field"><label>Sessional (out of 50)</label><input type="number" id="${id}_sess" min="0" max="50" placeholder="0" oninput="calc('${id}')"></div>
+      <div class="field"><label>Assignment (out of 40)</label><input type="number" id="${id}_assgn" min="0" max="40" placeholder="0" oninput="calc('${id}')"></div>
+      <div class="field"><label>Lab (out of 100)</label><input type="number" id="${id}_lab" min="0" max="100" placeholder="0" oninput="calc('${id}')"></div>
+      <div class="field"><label>LPW (out of 40)</label><input type="number" id="${id}_lpw" min="0" max="40" placeholder="0" oninput="calc('${id}')"></div>
+    </div>`;
+  }
+  function buildSubject(sub){
+    let fields, badgeClass, badgeLabel;
+    if(sub.type==="simple"){
+      fields = simpleFields(sub.id); badgeClass="simple"; badgeLabel="simple";
+    } else if(sub.type==="no-see"){
+      fields = noSeeFields(sub.id); badgeClass="nosee"; badgeLabel="no SEE";
+    } else {
+      fields = complexFields(sub.id); badgeClass="complex"; badgeLabel="complex";
+    }
+    const seeBox = sub.type==="no-see"
+      ? `<div class="res-box"><div class="res-label">SEE Exam</div><div class="res-val" style="font-size:13px;color:var(--text2)">No SEE for this subject</div></div>`
+      : `<div class="res-box"><div class="res-label">Required SEE (out of 100)</div><div class="res-val" id="${sub.id}_see">—</div></div>`;
+    return `<div class="subj-card">
+      <div class="subj-header">
+        <span class="subj-name">${sub.name}</span>
+        <span class="badge badge-${badgeClass}">${badgeLabel}</span>
+      </div>
+      ${fields}
+      <div class="target-row">
+        <label>Target</label>
+        ${gradeSelect(sub.id)}
+      </div>
+      <div class="result-row">
+        <div class="res-box">
+          <div class="res-label">Internal (out of 50)</div>
+          <div class="res-val" id="${sub.id}_internal">—</div>
+        </div>
+        ${seeBox}
+      </div>
+    </div>`;
+  }
+  function val(id){ const el=document.getElementById(id); return el?(parseFloat(el.value)||0):0; }
+  function calc(id){
+    const allSubs=[...subjects[1],...subjects[2],...subjects[3],...subjects[4]];
+    const sub=allSubs.find(s=>s.id===id); if(!sub) return;
+    let internal=0;
+    if(sub.type==="simple"){
+      internal=(val(id+"_sess")/50)*25+(val(id+"_assgn")/50)*25;
+    } else {
+      // complex and no-see both use same internal formula
+      internal=(val(id+"_sess")/50)*15+(val(id+"_assgn")/40)*10+(val(id+"_lab")/100)*15+(val(id+"_lpw")/40)*10;
+    }
+    const internalEl=document.getElementById(id+"_internal");
+    if(internalEl) internalEl.textContent=internal.toFixed(1);
+
+    if(sub.type==="no-see") return; // no SEE for EDW
+
+    const gradeEl=document.getElementById(id+"_grade");
+    const gradeVal=gradeEl?parseInt(gradeEl.value):9;
+    const targetPct=GRADE_POINTS[gradeVal];
+    const requiredSEE=(targetPct-internal)*2;
+    const seeEl=document.getElementById(id+"_see");
+    if(seeEl){
+      if(gradeVal===0){ seeEl.textContent="—"; seeEl.className="res-val"; }
+      else if(requiredSEE<=0){ seeEl.textContent="Done!"; seeEl.className="res-val ok"; }
+      else if(requiredSEE>100){ seeEl.textContent="Not possible"; seeEl.className="res-val bad"; }
+      else if(requiredSEE>75){ seeEl.textContent=requiredSEE.toFixed(1); seeEl.className="res-val warn"; }
+      else { seeEl.textContent=requiredSEE.toFixed(1); seeEl.className="res-val ok"; }
+    }
+  }
+  let currentSem = 1;
+  function calcSGPA(sem){
+    const subs=subjects[sem];
+    let totalGradePoints=0;
+    subs.forEach(sub=>{
+      const gradeEl=document.getElementById(sub.id+"_grade"); if(!gradeEl) return;
+      totalGradePoints += parseInt(gradeEl.value);
+    });
+    const sgpa = subs.length > 0 ? (totalGradePoints / subs.length).toFixed(2) : "—";
+    document.getElementById("sgpa-current").textContent = sgpa;
+  }
+  function switchSem(n){
+    document.querySelectorAll(".sem-panel").forEach((p,i)=>p.classList.toggle("active",i===n-1));
+  }
+
+  document.getElementById("sem1").innerHTML=subjects[1].map(buildSubject).join("");
+  document.getElementById("sem2").innerHTML=subjects[2].map(buildSubject).join("");
+  document.getElementById("sem3").innerHTML=subjects[3].map(buildSubject).join("");
+  document.getElementById("sem4").innerHTML=subjects[4].map(buildSubject).join("");
+  [...subjects[1],...subjects[2],...subjects[3],...subjects[4]].forEach(sub=>calc(sub.id));
+</script>
+</body>
+</html>
