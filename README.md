@@ -33,10 +33,6 @@ The tool supports Semester 1 to Semester 4 subjects of the ECE curriculum and pr
 - CSS3
 - JavaScript
 
-## 📷 Screenshots
-
-(Add screenshots here)
-
 ## 📂 Supported Semesters
 
 ### Semester 1
