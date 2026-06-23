@@ -3,7 +3,7 @@
 A modern web-based SEE Marks & SGPA Predictor designed for Nirma University ECE students.
 
 ## 🚀 Live Demo
-https://mellifluous-pegasus-81f120.netlify.app/
+https://sparkly-lolly-ccf266.netlify.app/
 
 ## 📖 About The Project
 
